@@ -1,4 +1,4 @@
-name: Build and deploy eShop Web to Azure Web App - AZLearning2
+name: Deploy eShop .NET Aspire App to Azure Web App
 
 on:
   push:
@@ -15,24 +15,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up .NET
+      - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.x'
 
-      - name: Restore Web project only
-        run: dotnet restore src/Web/Web.csproj
+      - name: Restore AppHost project
+        run: dotnet restore src/eShop.AppHost/eShop.AppHost.csproj
 
-      - name: Build Web project only
-        run: dotnet build src/Web/Web.csproj -c Release --no-restore
+      - name: Build AppHost
+        run: dotnet build src/eShop.AppHost/eShop.AppHost.csproj -c Release --no-restore
 
-      - name: Publish Web project only
-        run: dotnet publish src/Web/Web.csproj -c Release -o ${{ env.DOTNET_ROOT }}/myapp --no-build
+      - name: Publish AppHost
+        run: dotnet publish src/eShop.AppHost/eShop.AppHost.csproj -c Release -o ${{ env.DOTNET_ROOT }}/myapp --no-build
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: .net-app
+          name: webapp
           path: ${{ env.DOTNET_ROOT }}/myapp
 
   deploy:
@@ -43,12 +43,12 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: .net-app
+          name: webapp
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'AZLearning2'
           slot-name: 'Production'
-          package: .
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_94A74140EB1042DEA0516B75CEAB2FFA }}
+          package: .
